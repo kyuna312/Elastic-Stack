@@ -16,4 +16,4 @@ ROOT_PATH=$(dirname "$0")
 #docker stack deploy
 
 echo "$(date) Эластик процесс асаах "
-docker-compose -f "docker-compose-elk.yml" up --build
+sudo docker-compose -f "docker-compose-elk.yml" up --build
