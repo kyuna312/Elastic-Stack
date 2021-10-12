@@ -12,7 +12,7 @@ heartbeat.monitors:
     name: "ElasticSearch"
     schedule: '@every 10s'
     urls:
-      - https://elasticsearch:9200
+      - "${ELK_URL}"
     ssl.verification_mode: none
     check.response.status: 200
 
@@ -22,12 +22,12 @@ processors:
 
 output.elasticsearch:
   enabled: true
-  hosts: ["elasticsearch:9200"]
+  hosts: ["${ELK_HOST}:${ELK_PORT}"]
   loadbalancer: true
   ssl.verification_mode: none
 
 setup.kibana:
   enabled: true
-  host: "kibana:5601"
+  host: "${KIBANA_HOST}:${KIBANA_PORT}"
   protocol: "https"
   ssl.verification_mode: none

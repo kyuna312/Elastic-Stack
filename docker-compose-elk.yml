@@ -3,7 +3,7 @@ version: '2.1'
 services:
   # FileBeat
   filebeat:
-    image: "docker.elastic.co/beats/filebeat:7.9.3"
+    image: "docker.elastic.co/beats/filebeat:${FILEBEAT_VERSION}"
     container_name: filebeat
     user: root
     command:
@@ -15,41 +15,39 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - elasticsearch
-    networks:
-      - sodtestnetworks
+
 
   # Elastic Search
   elasticsearch:
-    image: "docker.elastic.co/elasticsearch/elasticsearch:7.9.3"
+    image: "docker.elastic.co/elasticsearch/elasticsearch:${ELK_VERSION}"
     container_name: elasticsearch
     environment:
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
       - "discovery.type=single-node"
     ports:
-      - "9200:9200"
+      - "${ELK_PORT}"
+    command:
+      - bash ./healthcheck.sh
     ulimits:
       nproc: 65535
       memlock:
         soft: -1
         hard: -1
+      nofile:
+        soft: 200000
+        hard: 200000
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
-    networks:
-      - sodtestnetworks
-    healthcheck:
-      test: curl -s http://localhost:9200 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
-      interval: 30s
-      timeout: 10s
-      retries: 5
+
 
   # LogStash
   logstash:
-    image: "docker.elastic.co/logstash/logstash:7.9.3"
+    image: "docker.elastic.co/logstash/logstash:${LOGSTASH_VERSION}"
     container_name: lostash
     ports:
-      - "5044:5044"
-      - "5000:5000"
-      - "9600:9600"
+      - "${LOGSTASH_PORT}"
+      - "${LOG1_PORT}"
+      - "${LOG2_PORT}"
     volumes:
       - ./config/logstash.yml:/usr/share/logstash/logstash.yml:ro
       - /var/lib/docker:/var/lib/docker:ro
@@ -58,12 +56,10 @@ services:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
     depends_on:
       - elasticsearch
-    networks:
-      - sodtestnetworks
 
   # HeartBeat
   heartbeat:
-    image: "docker.elastic.co/beats/heartbeat:7.9.3"
+    image: "docker.elastic.co/beats/heartbeat:${HEARTBEAT_VERSION}"
     container_name: heartbeat
     user: root
     command:
@@ -72,14 +68,12 @@ services:
     volumes:
       - ./config/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro
     restart: always
-    networks:
-      - sodtestnetworks
     depends_on:
       - elasticsearch
 
   # MetricBeat
   metricbeat:
-    image: "docker.elastic.co/beats/metricbeat:7.9.3"
+    image: "docker.elastic.co/beats/metricbeat:${METRICBEAT_VERSION}"
     container_name: metricbeat
     user: root
     command:
@@ -91,13 +85,11 @@ services:
     depends_on:
       - elasticsearch
     environment:
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-    networks:
-      - sodtestnetworks
+      - ELASTICSEARCH_URL=${ELK_URL}
 
   # APM SERVER
   apmserver:
-    image: "docker.elastic.co/apm/apm-server:7.9.3"
+    image: "docker.elastic.co/apm/apm-server:${APM_VERSION}"
     container_name: apmserver
     user: root
     command:
@@ -106,25 +98,18 @@ services:
     volumes:
       - ./config/apm-server.yml:/usr/share/apm/apm-server.yml:ro
     ports:
-      - "8200:8200"
-    networks:
-      - sodtestnetworks
+      - "${APM_PORT}"
     depends_on:
       - elasticsearch
 
   #Kibana
   kibana:
-    image: "docker.elastic.co/kibana/kibana:7.9.3"
+    image: "docker.elastic.co/kibana/kibana:${KIBANA_VERSION}"
     container_name: kibana
     ports:
-      - "5601:5601"
-    networks:
-      - sodtestnetworks
+      - "${KIBANA_PORT}"
     depends_on:
       - elasticsearch
 
 volumes:
   elasticsearch_data:
-
-networks:
-  sodtestnetworks:
