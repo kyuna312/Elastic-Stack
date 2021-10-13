@@ -7,4 +7,6 @@
 
 ### SODSTACK Еластик хайлт болон анализ ###
 
-
+<p align="center">
+    <a href="https://twitter.com/Nine_819/status/1446133302297960453/photo/1">Twitter Wallpaper</a>
+</p>
