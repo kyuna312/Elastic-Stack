@@ -1,0 +1,33 @@
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/heartbeat
+  name: heartbeat
+  keepfiles: 7
+  permissions: 0644
+
+heartbeat.monitors:
+  - type: http
+    enable: true
+    name: "ElasticSearch"
+    schedule: '@every 10s'
+    urls:
+      - https://elasticsearch:9200
+    ssl.verification_mode: none
+    check.response.status: 200
+
+processors:
+  #- add_docker_metadata: ~
+  - add_host_metadata: ~
+
+output.elasticsearch:
+  enabled: true
+  hosts: ["elasticsearch:9200"]
+  loadbalancer: true
+  ssl.verification_mode: none
+
+setup.kibana:
+  enabled: true
+  host: "kibana:5601"
+  protocol: "https"
+  ssl.verification_mode: none

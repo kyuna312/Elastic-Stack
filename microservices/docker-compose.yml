@@ -1,0 +1,263 @@
+version: '2.1'
+
+services:
+    #Filebeat
+    filebeat:
+        image: "docker.elastic.co/beats/filebeat:7.9.3"
+        container_name: filebeat
+        networks:
+            - jaeger
+        user: root
+        command:
+            - "-e"
+            - "--strict.perms=false"
+        volumes:
+            - ./conf/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+            - /var/lib/docker:/var/lib/docker:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+        depends_on:
+            - elasticsearch
+
+    # Elastic Search
+    elasticsearch:
+        image: "docker.elastic.co/elasticsearch/elasticsearch:7.9.3"
+        container_name: elasticsearch
+        networks:
+            - jaeger
+        environment:
+            - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+            - "discovery.type=single-node"
+            - "cluster.name=jaeger-cluster"
+            - "xpack.security.enabled=false"
+        ports:
+            - "9200:9200"
+            - "9300:9300"
+        ulimits:
+            nproc: 65535
+            memlock:
+                soft: -1
+                hard: -1
+        volumes:
+            - elasticsearch_data:/usr/share/elasticsearch/data
+        healthcheck:
+            test: "curl -f http://localhost:9200 || exit 1"
+
+    # LogStash
+    logstash:
+        image: "docker.elastic.co/logstash/logstash:7.9.3"
+        container_name: logstash
+        networks:
+            - jaeger
+        command:
+            - "-e"
+            - "--strict.perms=false"
+        ports:
+            - "5044:5044"
+            - "5000:5000"
+            - "9600:9600"
+        volumes:
+            - ./conf/logstash.yml:/usr/share/logstash/logstash.yml:ro
+            - ./conf/pipeline:/usr/share/logstash/pipeline:ro
+            - /var/lib/docker:/var/lib/docker:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+        environment:
+            LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+        depends_on:
+            - elasticsearch
+        healthcheck:
+            test: "curl -f http://localhost:9600 || exit 1"
+
+    # HeartBeat
+    heartbeat:
+        image: "docker.elastic.co/beats/heartbeat:7.9.3"
+        container_name: heartbeat
+        networks:
+            - jaeger
+        user: root
+        command:
+            - "-e"
+            - "--strict.perms=false"
+        volumes:
+            - ./conf/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro
+            - /var/lib/docker:/var/lib/docker:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+        restart: always
+        depends_on:
+            - elasticsearch
+
+    # MetricBeat
+    metricbeat:
+        image: "docker.elastic.co/beats/metricbeat:7.9.3"
+        container_name: metricbeat
+        networks:
+            - jaeger
+        user: root
+        command:
+            - "-e"
+            - "--strict.perms=false"
+        volumes:
+            - ./conf/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+            - /var/lib/docker:/var/lib/docker:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+        restart: always
+        depends_on:
+            - elasticsearch
+        environment:
+            - ELASTICSEARCH_URL=http://elasticsearch:9200
+
+    # APM SERVER
+    apmserver:
+        image: "docker.elastic.co/apm/apm-server:7.9.3"
+        container_name: apmserver
+        networks:
+            - jaeger
+        user: root
+        command:
+            - "-e"
+            - "--strict.perms=false"
+        volumes:
+            - ./conf/apm-server.yml:/usr/share/apm/apm-server.yml:ro
+            - /var/lib/docker:/var/lib/docker:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+        ports:
+            - "8200:8200"
+        depends_on:
+            - elasticsearch
+        healthcheck:
+            test: "curl -f http://localhost:8200 || exit 1"
+
+    #Kibana
+    kibana:
+        image: "docker.elastic.co/kibana/kibana:7.9.3"
+        container_name: kibana
+        networks:
+            - jaeger
+        volumes:
+            - ./conf/kibana.yml:/usr/share/kibana/kibana.yml:ro
+        ports:
+            - "5601:5601"
+        depends_on:
+            - elasticsearch
+        healthcheck:
+            test: "curl -f http://localhost:5601 || exit 1"
+
+    # jaeger all in one
+    jaeger:
+        container_name: jaeger
+        image: jaegertracing/all-in-one:1.8
+        networks:
+            - jaeger
+        ports:
+            - "6831:6831/udp"
+            - "6832:6832/udp"
+            - "16686:16686"
+        restart: always
+        depends_on:
+            -   elasticsearch
+
+    # Config
+    config:
+        environment:
+            CONFIG_SERVICE_PASSWORD: $CONFIG_SERVICE_PASSWORD
+            LOGSTASH_URL: logstash:5044
+            JAEGER_AGENT_HOST: jaeger
+            JAEGER_AGENT_PORT: 6831
+        image: baskanomaly/demo-config
+        networks:
+            - jaeger
+        restart: always
+        ports:
+            - 8888:80
+        logging:
+            options:
+                max-size: "10m"
+                max-file: "10"
+
+    # Registery
+    registry:
+        environment:
+            CONFIG_SERVICE_PASSWORD: $CONFIG_SERVICE_PASSWORD
+            LOGSTASH_URL: logstash:5044
+            JAEGER_AGENT_HOST: jaeger
+            JAEGER_AGENT_PORT: 6831
+        image: baskanomaly/demo-registry
+        restart: always
+        networks:
+            - jaeger
+        depends_on:
+            config:
+                condition: service_healthy
+        ports:
+            - 8763:80
+        logging:
+            options:
+                max-size: "10m"
+                max-file: "10"
+
+    # Auth Service
+    auth-service:
+        environment:
+            CONFIG_SERVICE_PASSWORD: $CONFIG_SERVICE_PASSWORD
+            CONFIG_SERVICE_USERNAME: user
+            LOGSTASH_URL: logstash:5044
+            JAEGER_AGENT_HOST: jaeger
+            JAEGER_AGENT_PORT: 6831
+        image: baskanomaly/demo-auth
+        networks:
+            - jaeger
+        restart: always
+        depends_on:
+            config:
+                condition: service_healthy
+        logging:
+            options:
+                max-size: "10m"
+                max-file: "10"
+
+    # Gateway
+    gateway:
+        environment:
+            CONFIG_SERVICE_PASSWORD: $CONFIG_SERVICE_PASSWORD
+            LOGSTASH_URL: logstash:5044
+            JAEGER_AGENT_HOST: jaeger
+            JAEGER_AGENT_PORT: 6831
+        image: baskanomaly/demo-gateway
+        networks:
+            - jaeger
+        restart: always
+        depends_on:
+            config:
+                condition: service_healthy
+        ports:
+            - 8082:80
+        logging:
+            options:
+                max-size: "10m"
+                max-file: "10"
+
+    # App Servie
+    app-service:
+        environment:
+            CONFIG_SERVICE_PASSWORD: $CONFIG_SERVICE_PASSWORD
+            APP_SERVICE_PASSWORD: $APP_SERVICE_PASSWORD
+            LOGSTASH_URL: logstash:5044
+            JAEGER_AGENT_HOST: jaeger
+            JAEGER_AGENT_PORT: 6831
+        image: baskanomaly/demo-app
+        networks:
+            - jaeger
+        restart: always
+        depends_on:
+            config:
+                condition: service_healthy
+        logging:
+            options:
+                max-size: "10m"
+                max-file: "10"
+
+volumes:
+    elasticsearch_data:
+
+networks:
+    jaeger:
+        driver: bridge

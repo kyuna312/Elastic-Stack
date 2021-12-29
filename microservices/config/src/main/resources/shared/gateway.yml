@@ -1,0 +1,31 @@
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 20000
+
+ribbon:
+  ReadTimeout: 20000
+  ConnectTimeout: 20000
+
+zuul:
+  ignoredServices: '*'
+  host:
+    connect-timeout-millis: 20000
+    socket-timeout-millis: 20000
+  routes:
+    auth-service:
+      path: /uaa/**
+      serviceId: auth-service
+      stripPrefix: false
+      sensitiveHeaders:
+    app-service:
+      path: /app/**
+      serviceId: app-service
+      stripPrefix: false
+      sensitiveHeaders:
+
+server:
+  port: 80

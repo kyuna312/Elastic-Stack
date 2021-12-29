@@ -1,0 +1,17 @@
+server:
+  servlet:
+    context-path: /app
+  port: 80
+
+feign:
+  hystrix:
+    enabled: true
+
+security:
+  oauth2:
+    client:
+      clientId: app-service
+      clientSecret: ${APP_SERVICE_PASSWORD}
+      accessTokenUri: http://auth-service:80/uaa/oauth/token
+      grant-type: client_credentials
+      scope: server
