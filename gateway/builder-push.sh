@@ -1,4 +1,4 @@
 set -euxo pipefail
 
 echo "uploading image tag of latest"
-docker push baskanomaly/demo-gateway
+docker push mion312/demo-gateway

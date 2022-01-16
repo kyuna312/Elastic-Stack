@@ -1,2 +1,0 @@
-output.elasticsearch:
-  hosts: ['0.0.0.0:${ELK_PORT}']

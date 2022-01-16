@@ -1,8 +1,0 @@
----
-http.host: "0.0.0.0"
-xpack.monitoring.elasticsearch.hosts: [ "${ELK_URL}" ]
-
-## X-Pack security credentials
-xpack.monitoring.enabled: true
-xpack.monitoring.elasticsearch.username: "${ELK_USER}"
-xpack.monitoring.elasticsearch.password: "${ELK_PASSWORD}"

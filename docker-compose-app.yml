@@ -3,7 +3,7 @@ services:
   config:
     environment:
       CONFIG_SERVICE_PASSWORD: $CONFIG_SERVICE_PASSWORD
-    image: baskanomaly/demo-config
+    image: mion312/demo-config
     restart: always
     ports:
     - 8888:80
@@ -15,7 +15,7 @@ services:
   registry:
     environment:
       CONFIG_SERVICE_PASSWORD: $CONFIG_SERVICE_PASSWORD
-    image: baskanomaly/demo-registry
+    image: mion312/demo-registry
     restart: always
     depends_on:
       config:
@@ -31,7 +31,7 @@ services:
     environment:
       CONFIG_SERVICE_PASSWORD: $CONFIG_SERVICE_PASSWORD
       CONFIG_SERVICE_USERNAME: user
-    image: baskanomaly/demo-auth
+    image: mion312/demo-auth
     restart: always
     depends_on:
       config:
@@ -44,7 +44,7 @@ services:
   gateway:
     environment:
       CONFIG_SERVICE_PASSWORD: $CONFIG_SERVICE_PASSWORD
-    image: baskanomaly/demo-gateway
+    image: mion312/demo-gateway
     restart: always
     depends_on:
       config:
@@ -60,7 +60,7 @@ services:
     environment:
       CONFIG_SERVICE_PASSWORD: $CONFIG_SERVICE_PASSWORD
       APP_SERVICE_PASSWORD: $APP_SERVICE_PASSWORD
-    image: baskanomaly/demo-app
+    image: mion312/demo-app
     restart: always
     depends_on:
       config:

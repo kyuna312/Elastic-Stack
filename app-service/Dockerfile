@@ -1,5 +1,5 @@
 FROM java:8-jre
-MAINTAINER Baasanbat Purevjal <baasanbatp@gmail.com>
+MAINTAINER Amane Mion <khatanzorigb@gmail.com>
 ENV SET_CONTAINER_TIMEZONE true
 ENV CONTAINER_TIMEZONE Asia/Ulaanbaatar
 ENV TZ Asia/Ulaanbaatar

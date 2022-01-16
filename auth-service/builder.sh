@@ -5,4 +5,4 @@ echo ""
 mvn clean package -DskipTests
 
 echo "building image with tag of latest"
-docker build -t baskanomaly/demo-app .
+docker build -t mion312/demo-auth .

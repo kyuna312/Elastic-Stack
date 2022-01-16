@@ -2,7 +2,11 @@
 
 ROOT_PATH=$(dirname "$0")
 
-echo "$(date) Эластик процесс асаах "
-sudo docker-compose -f "docker-compose-elk.yml" up --build
+echo "$(date) build"
+sudo docker-compose build
 
-#  --cpu-rt-runtime=950000 --ulimiy rtptio=99 --cap-add=sys_nice --memory="300m" --emory-swap="1g"
+echo "$(date) Лог трак асаж байна. "
+sudo docker-compose up
+
+
+#docker system prune

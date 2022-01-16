@@ -162,7 +162,7 @@ services:
             LOGSTASH_URL: logstash:5044
             JAEGER_AGENT_HOST: jaeger
             JAEGER_AGENT_PORT: 6831
-        image: baskanomaly/demo-config
+        image: mion312/demo-config
         networks:
             - jaeger
         restart: always
@@ -180,7 +180,7 @@ services:
             LOGSTASH_URL: logstash:5044
             JAEGER_AGENT_HOST: jaeger
             JAEGER_AGENT_PORT: 6831
-        image: baskanomaly/demo-registry
+        image: mion312/demo-registry
         restart: always
         networks:
             - jaeger
@@ -202,7 +202,7 @@ services:
             LOGSTASH_URL: logstash:5044
             JAEGER_AGENT_HOST: jaeger
             JAEGER_AGENT_PORT: 6831
-        image: baskanomaly/demo-auth
+        image: mion312/demo-auth
         networks:
             - jaeger
         restart: always
@@ -221,7 +221,7 @@ services:
             LOGSTASH_URL: logstash:5044
             JAEGER_AGENT_HOST: jaeger
             JAEGER_AGENT_PORT: 6831
-        image: baskanomaly/demo-gateway
+        image: mion312/demo-gateway
         networks:
             - jaeger
         restart: always
@@ -243,7 +243,7 @@ services:
             LOGSTASH_URL: logstash:5044
             JAEGER_AGENT_HOST: jaeger
             JAEGER_AGENT_PORT: 6831
-        image: baskanomaly/demo-app
+        image: mion312/demo-app
         networks:
             - jaeger
         restart: always
